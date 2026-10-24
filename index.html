@@ -36,7 +36,7 @@ dialog::backdrop{background:#0006}
 </head>
 <body>
 <header>
-  <div><h1>golf together</h1><p>gemeinsam mehr spass</p></div>
+  <div><h1>golf together</h1><p>Gemeinsam auf dem Green</p></div>
   <button id="admin-open" type="button">Admin</button>
 </header>
 
@@ -233,17 +233,20 @@ function render() {
 
       chip.append(label);
 
-      // Abmeldebutton nur bei der eigenen Anmeldung anzeigen
-      if (user && uid === user.uid) {
+      // Abmelden ist auf jedem Gerät möglich.
+      // Die Bestätigung nennt die Person, damit keine Anmeldung versehentlich gelöscht wird.
+      if (user) {
         const cancel = node("button", "Abmelden", "danger");
         cancel.type = "button";
+        cancel.setAttribute("aria-label", `Anmeldung von ${person.fullName || person.initials || "dieser Person"} entfernen`);
 
         cancel.addEventListener("click", async () => {
-          if (!confirm("Möchtest du deine Anmeldung entfernen?")) return;
+          const name = person.fullName || person.initials || "diese Person";
+          if (!confirm(`Möchtest du die Anmeldung von ${name} wirklich entfernen?`)) return;
 
           try {
-            await remove(ref(db, `signups/${id}/${user.uid}`));
-            say("status", "Deine Anmeldung wurde entfernt.");
+            await remove(ref(db, `signups/${id}/${uid}`));
+            say("status", `Die Anmeldung von ${name} wurde entfernt.`);
           } catch (error) {
             console.error("Abmelden fehlgeschlagen:", error);
             say("status", `Abmelden fehlgeschlagen: ${error.code || error.message}`);
