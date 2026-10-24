@@ -11,6 +11,7 @@ header{background:#173f35;color:white;padding:22px;display:flex;justify-content:
 header h1{margin:0;font-size:25px}
 header p{margin:5px 0 0;color:#d9ed9b;font-size:13px}
 button{cursor:pointer;border:0;border-radius:8px;background:#173f35;color:white;padding:12px 16px;font-weight:bold}
+button:disabled{opacity:.6;cursor:not-allowed}
 header button{background:#d9ed9b;color:#173f35}
 main{max-width:760px;margin:35px auto;padding:0 16px}
 h2{margin-top:0}
@@ -28,12 +29,14 @@ form button{margin-top:14px}
 [hidden]{display:none!important}
 .note{font-size:13px;line-height:1.5;color:#68756d}
 footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
+dialog{width:calc(100% - 48px);max-width:420px;border:0;border-radius:14px;padding:24px;box-shadow:0 8px 35px #0003;box-sizing:border-box}
+dialog::backdrop{background:#0006}
 </style>
 </head>
 <body>
 <header>
   <div><h1>golf together</h1><p>Gemeinsam auf dem Green</p></div>
-  <button id="admin-open">Admin</button>
+  <button id="admin-open" type="button">Admin</button>
 </header>
 
 <main>
@@ -44,7 +47,7 @@ footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
   <p id="status" class="note" role="status"></p>
 
   <section id="admin" class="panel" hidden>
-    <button id="admin-close" class="secondary">Schliessen</button>
+    <button id="admin-close" type="button" class="secondary">Schliessen</button>
     <h2>Eventverwaltung</h2>
     <form id="login">
       <p class="note">Admin-Anmeldung</p>
@@ -52,12 +55,13 @@ footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
       <input id="email" type="email" autocomplete="username" required>
       <label for="password">Passwort</label>
       <input id="password" type="password" autocomplete="current-password" required>
-      <button class="wide">Anmelden</button>
+      <button class="wide" type="submit">Anmelden</button>
       <p id="login-message" class="note"></p>
     </form>
+
     <div id="admin-tools" hidden>
       <p>Du bist als Administrator angemeldet.</p>
-      <button id="logout" class="secondary">Abmelden</button>
+      <button id="logout" type="button" class="secondary">Abmelden</button>
       <h3>Neues Event erstellen</h3>
       <form id="event-form">
         <label for="event-title">Eventname</label>
@@ -68,7 +72,7 @@ footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
         <input id="event-location" required placeholder="Waldkirch">
         <label for="event-description">Beschreibung</label>
         <input id="event-description" placeholder="Optional">
-        <button class="wide">Event speichern</button>
+        <button class="wide" type="submit">Event speichern</button>
         <p id="event-message" class="note"></p>
       </form>
       <h3>Events verwalten</h3>
@@ -76,6 +80,7 @@ footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
     </div>
   </section>
 </main>
+
 <footer>golf together · Schön, dass du dabei bist.</footer>
 
 <dialog id="signup-dialog">
@@ -86,7 +91,7 @@ footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
     <input id="first" maxlength="50" autocomplete="given-name" required>
     <label for="last">Nachname</label>
     <input id="last" maxlength="50" autocomplete="family-name" required>
-    <button class="wide">Anmeldung bestätigen</button>
+    <button class="wide" type="submit">Anmeldung bestätigen</button>
     <button type="button" id="signup-close" class="secondary wide">Abbrechen</button>
     <p id="signup-message" class="note"></p>
   </form>
@@ -95,11 +100,20 @@ footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {
-  getAuth, signInAnonymously, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged
+  getAuth,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
-  getDatabase, ref, onValue, push, set, remove, get
+  getDatabase,
+  ref,
+  onValue,
+  push,
+  set,
+  remove,
+  get
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -124,17 +138,24 @@ let signups = {};
 let selectedEvent = null;
 let authReady = false;
 
-const say = (id, message) => $(id).textContent = message;
+const say = (id, message) => {
+  const el = $(id);
+  if (el) el.textContent = message;
+};
+
 const clean = value => String(value ?? "");
-const initials = (first,last) =>
-  Array.from(first.trim()).slice(0,2).join("") .toLocaleUpperCase("de-CH") +
-  Array.from(last.trim()).slice(0,2).join("").toLocaleUpperCase("de-CH");
+
+const initials = (first, last) =>
+  Array.from(first.trim()).slice(0, 2).join("").toLocaleUpperCase("de-CH") +
+  Array.from(last.trim()).slice(0, 2).join("").toLocaleUpperCase("de-CH");
 
 function dateLabel(date) {
   if (!date) return "";
   return new Intl.DateTimeFormat("de-CH", {
-    day:"numeric",month:"long",year:"numeric"
-  }).format(new Date(date+"T12:00:00"));
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(new Date(date + "T12:00:00"));
 }
 
 function node(tag, text, className) {
@@ -147,206 +168,294 @@ function node(tag, text, className) {
 function render() {
   const root = $("events");
   root.replaceChildren();
-  const rows = Object.entries(events).sort((a,b) =>
+
+  const rows = Object.entries(events).sort((a, b) =>
     clean(a[1].date).localeCompare(clean(b[1].date))
   );
 
   if (!rows.length) {
-    root.append(node("p","Noch keine Events erfasst."));
+    root.append(node("p", "Noch keine Events erfasst."));
     return;
   }
 
-  for (const [id,event] of rows) {
-    const card = node("article",undefined,"card");
-    card.append(node("p",clean(event.date)+" · "+clean(event.location),"meta"));
-    card.append(node("h2",event.title));
-    if (event.description) card.append(node("p",event.description));
+  for (const [id, event] of rows) {
+    const card = node("article", undefined, "card");
+
+    card.append(node(
+      "p",
+      clean(event.date) + " · " + clean(event.location),
+      "meta"
+    ));
+
+    card.append(node("h2", event.title));
+
+    if (event.description) {
+      card.append(node("p", event.description));
+    }
 
     const entries = Object.entries(signups[id] || {});
-    card.append(node("strong",`Angemeldet: ${entries.length}`));
-    const people = node("div",undefined,"people");
+    card.append(node("strong", `Angemeldet: ${entries.length}`));
 
-    if (!entries.length) people.append(node("span","Noch keine Anmeldungen"));
+    const people = node("div", undefined, "people");
 
-    for (const [uid,person] of entries) {
-      const chip = node("span",undefined,"person");
+    if (!entries.length) {
+      people.append(node("span", "Noch keine Anmeldungen"));
+    }
+
+    for (const [uid, person] of entries) {
+      const chip = node("span", undefined, "person");
       chip.append(document.createTextNode(person.initials || "??"));
 
       if (user && uid === user.uid) {
-        const cancel = node("button","Abmelden","danger");
+        const cancel = node("button", "Abmelden", "danger");
         cancel.type = "button";
-        cancel.addEventListener("click",async () => {
+
+        cancel.addEventListener("click", async () => {
           if (!confirm("Möchtest du deine Anmeldung entfernen?")) return;
+
           try {
-            await remove(ref(db,`signups/${id}/${user.uid}`));
-            say("status","Deine Anmeldung wurde entfernt.");
-          } catch(e) {
-            say("status","Abmelden nicht möglich. Bitte Verbindung prüfen.");
+            await remove(ref(db, `signups/${id}/${user.uid}`));
+            say("status", "Deine Anmeldung wurde entfernt.");
+          } catch (error) {
+            console.error("Abmelden fehlgeschlagen:", error);
+            say("status", `Abmelden fehlgeschlagen: ${error.code || error.message}`);
           }
         });
+
         chip.append(cancel);
       }
+
       people.append(chip);
     }
+
     card.append(people);
 
     const own = user && signups[id]?.[user.uid];
-    const button = node("button",own ? "Du bist angemeldet ✓" : "Für dieses Event anmelden","wide");
+
+    const button = node(
+      "button",
+      own ? "Du bist angemeldet ✓" : "Für dieses Event anmelden",
+      "wide"
+    );
+
+    button.type = "button";
     button.disabled = Boolean(own) || !authReady;
-    if (!own) button.addEventListener("click",() => {
-      selectedEvent = id;
-      $("signup-title").textContent = event.title;
-      $("signup-date").textContent = dateLabel(event.date)+" · "+event.location;
-      $("signup-form").reset();
-      say("signup-message","");
-      $("signup-dialog").showModal();
-    });
+
+    if (!own) {
+      button.addEventListener("click", () => {
+        selectedEvent = id;
+        $("signup-title").textContent = event.title;
+        $("signup-date").textContent =
+          dateLabel(event.date) + " · " + event.location;
+        $("signup-form").reset();
+        say("signup-message", "");
+        $("signup-dialog").showModal();
+      });
+    }
+
     card.append(button);
     root.append(card);
   }
 }
 
-$("signup-close").addEventListener("click",() => $("signup-dialog").close());
+$("signup-close").addEventListener("click", () => {
+  $("signup-dialog").close();
+});
 
-$("signup-form").addEventListener("submit",async e => {
+$("signup-form").addEventListener("submit", async e => {
   e.preventDefault();
-  if (!user || !selectedEvent) return;
+
+  if (!user || !selectedEvent) {
+    say("signup-message", "Bitte warte, bis die Anmeldung bereit ist, und versuche es erneut.");
+    return;
+  }
 
   const first = $("first").value.trim();
   const last = $("last").value.trim();
-  if (!first || !last) return;
+
+  if (!first || !last) {
+    say("signup-message", "Bitte Vorname und Nachname eingeben.");
+    return;
+  }
+
+  // Datenbankpfad für diesen Benutzer und dieses Event
+  const signupRef = ref(db, `signups/${selectedEvent}/${user.uid}`);
 
   const submitButton = $("signup-form").querySelector(
-  'button[type="submit"], input[type="submit"]'
-);
+    'button[type="submit"], input[type="submit"]'
+  );
 
-if (submitButton) submitButton.disabled = true;
+  if (submitButton) submitButton.disabled = true;
 
   try {
     const existing = await get(signupRef);
+
     if (existing.exists()) {
-      say("signup-message","Du bist bereits angemeldet.");
+      say("signup-message", "Du bist bereits angemeldet.");
       return;
     }
-    // Es werden nur Kürzel gespeichert, nicht die vollständigen Namen.
-    await set(signupRef,{
-      initials:initials(first,last),
-      createdAt:Date.now()
+
+    // Es werden nur Initialen gespeichert, nicht die vollständigen Namen.
+    await set(signupRef, {
+      initials: initials(first, last),
+      createdAt: Date.now()
     });
+
     $("signup-dialog").close();
-    say("status","Deine Anmeldung wurde gespeichert.");
-  } catch(error) {
-    say("signup-message","Speichern fehlgeschlagen. Bitte Firebase-Regeln prüfen.");
-    console.error(error);
+    say("status", "Deine Anmeldung wurde gespeichert.");
+
+  } catch (error) {
+    console.error("Fehler bei der Anmeldung:", error);
+    say(
+      "signup-message",
+      `Speichern fehlgeschlagen: ${error.code || error.message}`
+    );
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
 });
 
-$("admin-open").addEventListener("click",() => {
+$("admin-open").addEventListener("click", () => {
   $("admin").hidden = false;
-  $("admin").scrollIntoView({behavior:"smooth"});
+  $("admin").scrollIntoView({ behavior: "smooth" });
 });
-$("admin-close").addEventListener("click",() => $("admin").hidden = true);
 
-$("login").addEventListener("submit",async e => {
+$("admin-close").addEventListener("click", () => {
+  $("admin").hidden = true;
+});
+
+$("login").addEventListener("submit", async e => {
   e.preventDefault();
+
   try {
-    await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
-    say("login-message","");
-  } catch(error) {
-    say("login-message","Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.");
+    await signInWithEmailAndPassword(
+      auth,
+      $("email").value.trim(),
+      $("password").value
+    );
+    say("login-message", "");
+  } catch (error) {
+    console.error("Admin-Anmeldung fehlgeschlagen:", error);
+    say("login-message", `Anmeldung fehlgeschlagen: ${error.code || error.message}`);
   }
 });
 
-$("logout").addEventListener("click",async () => {
-  await signOut(auth);
-  await signInAnonymously(auth);
+$("logout").addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    await signInAnonymously(auth);
+  } catch (error) {
+    console.error("Abmelden fehlgeschlagen:", error);
+    say("status", "Abmelden fehlgeschlagen. Bitte Verbindung prüfen.");
+  }
 });
 
 function renderAdminEvents() {
   const root = $("admin-events");
   root.replaceChildren();
 
-  for (const [id,event] of Object.entries(events)) {
-    const row = node("div",undefined,"card");
-    row.append(node("strong",event.title));
-    row.append(node("p",dateLabel(event.date)+" · "+event.location));
-    const del = node("button","Event löschen","danger");
-    del.addEventListener("click",async () => {
+  for (const [id, event] of Object.entries(events)) {
+    const row = node("div", undefined, "card");
+    row.append(node("strong", event.title));
+    row.append(node("p", dateLabel(event.date) + " · " + event.location));
+
+    const del = node("button", "Event löschen", "danger");
+    del.type = "button";
+
+    del.addEventListener("click", async () => {
       if (!confirm("Event und alle Anmeldungen löschen?")) return;
+
       try {
-        await remove(ref(db,`events/${id}`));
-        await remove(ref(db,`signups/${id}`));
-      } catch(e) {
-        say("status","Löschen fehlgeschlagen.");
+        await remove(ref(db, `events/${id}`));
+        await remove(ref(db, `signups/${id}`));
+        say("status", "Event und Anmeldungen wurden gelöscht.");
+      } catch (error) {
+        console.error("Event löschen fehlgeschlagen:", error);
+        say("status", `Löschen fehlgeschlagen: ${error.code || error.message}`);
       }
     });
+
     row.append(del);
     root.append(row);
   }
 }
 
-$("event-form").addEventListener("submit",async e => {
+$("event-form").addEventListener("submit", async e => {
   e.preventDefault();
-  if (!isAdmin) return;
+
+  if (!isAdmin) {
+    say("event-message", "Du hast keine Administratorrechte.");
+    return;
+  }
 
   const event = {
-    title:$("event-title").value.trim(),
-    date:$("event-date").value,
-    location:$("event-location").value.trim(),
-    description:$("event-description").value.trim()
+    title: $("event-title").value.trim(),
+    date: $("event-date").value,
+    location: $("event-location").value.trim(),
+    description: $("event-description").value.trim()
   };
+
   try {
-    await set(push(ref(db,"events")),event);
+    await set(push(ref(db, "events")), event);
     e.target.reset();
-    say("event-message","Event wurde gespeichert.");
-  } catch(error) {
-    say("event-message","Speichern fehlgeschlagen. Adminrechte prüfen.");
+    say("event-message", "Event wurde gespeichert.");
+  } catch (error) {
+    console.error("Event speichern fehlgeschlagen:", error);
+    say("event-message", `Speichern fehlgeschlagen: ${error.code || error.message}`);
   }
 });
 
-onAuthStateChanged(auth,async current => {
+onAuthStateChanged(auth, async current => {
   user = current;
+
   if (!user) {
     authReady = false;
+    render();
     return;
   }
 
   try {
-    const adminSnap = await get(ref(db,`admins/${user.uid}`));
+    const adminSnap = await get(ref(db, `admins/${user.uid}`));
     isAdmin = adminSnap.val() === true;
+
     $("login").hidden = isAdmin;
     $("admin-tools").hidden = !isAdmin;
+
     if (isAdmin) renderAdminEvents();
-  } catch(error) {
+
+  } catch (error) {
     isAdmin = false;
     $("login").hidden = false;
     $("admin-tools").hidden = true;
+    console.error("Adminstatus konnte nicht geprüft werden:", error);
   }
 
   authReady = true;
   render();
 });
 
-onValue(ref(db,"events"),snapshot => {
+onValue(ref(db, "events"), snapshot => {
   events = snapshot.val() || {};
   render();
+
   if (isAdmin) renderAdminEvents();
-},error => {
-  say("status","Events konnten nicht geladen werden. Firebase-Regeln prüfen.");
-  console.error(error);
+
+}, error => {
+  say("status", `Events konnten nicht geladen werden: ${error.code || error.message}`);
+  console.error("Events laden fehlgeschlagen:", error);
 });
 
-onValue(ref(db,"signups"),snapshot => {
+onValue(ref(db, "signups"), snapshot => {
   signups = snapshot.val() || {};
   render();
-},error => console.error(error));
+}, error => {
+  console.error("Anmeldungen laden fehlgeschlagen:", error);
+});
 
 if (!auth.currentUser) {
   signInAnonymously(auth).catch(error => {
-    say("status","Firebase-Anmeldung fehlgeschlagen. Authentication prüfen.");
-    console.error(error);
+    say("status", `Firebase-Anmeldung fehlgeschlagen: ${error.code || error.message}`);
+    console.error("Anonyme Anmeldung fehlgeschlagen:", error);
   });
 }
 </script>
