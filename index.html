@@ -229,7 +229,9 @@ function render() {
     }
 
     const entries = Object.entries(signups[id] || {});
-    card.append(node("strong", `Angemeldet: ${entries.length}`));
+    const count = node("strong", `Angemeldet: ${entries.length}`);
+    count.style.fontSize = "12px";
+    card.append(count);
     card.append(node("p", "Teilnehmer (Klick auf Kürzel zeigt den ganzen Namen)", "participant-label"));
 
     const people = node("div", undefined, "people");
