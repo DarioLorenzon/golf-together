@@ -1,22 +1,30 @@
 
 <!DOCTYPE html>
 <html lang="de-CH">
+<!--
+  Golf Together
+  -------------
+  Web-App zur Anzeige von Golfevents und zur Verwaltung von Anmeldungen.
+  Die Daten werden in Firebase Realtime Database gespeichert.
+  Veröffentlichung über GitHub Pages.
+-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>golf together</title>
 <style>
+/* ===== Grundlayout und Farben ===== */
 body{margin:0;background:#f5f6ef;color:#203d32;font-family:Arial,sans-serif}
 header{background:#173f35;color:white;padding:22px;display:flex;justify-content:space-between;align-items:center}
 header h1{margin:0;font-size:25px}
 header p{margin:5px 0 0;color:#d9ed9b;font-size:13px}
 button{cursor:pointer;border:0;border-radius:8px;background:#173f35;color:white;padding:12px 16px;font-weight:bold}
 button:disabled{opacity:.6;cursor:not-allowed}
-header button{background:#d9ed9b;color:#173f35}
+header button{background:#d9ed9b;color:#173f35;padding:5px 9px;font-size:11px;border-radius:6px}
 main{max-width:760px;margin:35px auto;padding:0 16px}
 h2{margin-top:0}
 .card,.panel{background:white;padding:22px;border-radius:14px;box-shadow:0 4px 16px #00000010;margin-bottom:18px}
-.meta{font-size:11px;color:#6a806d}
+.meta{font-size:10px;color:#6a806d}
 .people{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 15px}
 .participant-label{font-size:13px;color:#6a806d;margin:10px 0 4px}
 .person{background:#e7efdc;padding:9px 12px;border-radius:8px;font-weight:bold}
@@ -30,6 +38,7 @@ form button{margin-top:14px}
 [hidden]{display:none!important}
 .note{font-size:13px;line-height:1.5;color:#68756d}
 footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
+/* ===== Anmeldedialog ===== */
 dialog{width:calc(100% - 32px);max-width:360px;border:0;border-radius:12px;padding:16px;box-shadow:0 8px 35px #0003;box-sizing:border-box}
 dialog::backdrop{background:#0006}
 #signup-dialog h2{font-size:19px;margin:0 0 5px}
@@ -42,19 +51,18 @@ dialog::backdrop{background:#0006}
 </style>
 </head>
 <body>
+<!-- ===== Kopfzeile ===== -->
 <header>
   <div><h1>golf together</h1><p>gemeinsam mehr spass</p></div>
   <button id="admin-open" type="button">Admin</button>
 </header>
 
+<!-- ===== Hauptbereich: Events und Administration ===== -->
 <main>
-  <p class="meta">UNSERE GOLFEVENTS</p>
-  <h2>Kommst du mit?</h2>
-  <p class="note">Melde dich für unsere gemeinsamen Golfrunden an.</p>
-
   <div id="events">Events werden geladen …</div>
 <p id="status" class="note" role="status"></p>
 
+  <!-- Nur für Administratoren: Login und Eventverwaltung -->
   <section id="admin" class="panel" hidden>
     <button id="admin-close" type="button" class="secondary">Schliessen</button>
     <h2>Eventverwaltung</h2>
@@ -95,6 +103,7 @@ dialog::backdrop{background:#0006}
 
 <footer>golf together · Schön, dass du dabei bist.</footer>
 
+<!-- Dialog für die Anmeldung mit Vorname und Nachname -->
 <dialog id="signup-dialog">
   <form id="signup-form">
     <h2 id="signup-title">Anmeldung</h2>
@@ -110,6 +119,14 @@ dialog::backdrop{background:#0006}
 </dialog>
 
 <script type="module">
+/*
+ * Firebase und App-Logik
+ * - Anonyme Anmeldung für Teilnehmende
+ * - E-Mail/Passwort für die Administration
+ * - Live-Aktualisierung von Events und Anmeldungen
+ * - Teilnehmerkürzel zeigen auf Klick kurz den vollständigen Namen
+ * - Anmeldungen können geräteübergreifend entfernt werden
+ */
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {
   getAuth,
@@ -128,6 +145,7 @@ import {
   get
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
+// Verbindungseinstellungen für das Firebase-Projekt.
 const firebaseConfig = {
   apiKey: "AIzaSyCrqW1W42rT1DumrbdLUJ8FvneFjwNdKMs",
   authDomain: "golf-together-4a1b7.firebaseapp.com",
@@ -163,6 +181,7 @@ const initials = (first, last) =>
   Array.from(last.trim())[0].toLocaleUpperCase("de-CH") +
   Array.from(last.trim()).slice(1, 2).join("").toLocaleLowerCase("de-CH");
 
+// Datumsformat in der Übersicht: TT.MM.JJJJ
 function dateLabel(date) {
   if (!date) return "";
   return new Intl.DateTimeFormat("de-CH", {
@@ -179,6 +198,7 @@ function node(tag, text, className) {
   return el;
 }
 
+// Erstellt die Eventkarten und Teilnehmerlisten aus den aktuellen Daten.
 function render() {
   // Übersicht bei jeder Änderung aktualisieren
 
