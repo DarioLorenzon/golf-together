@@ -146,7 +146,6 @@ const say = (id, message) => {
 const clean = value => String(value ?? "");
 
 const initials = (first, last) =>
-const initials = (first, last) =>
   Array.from(first.trim())[0].toLocaleUpperCase("de-CH") +
   Array.from(first.trim()).slice(1, 2).join("").toLocaleLowerCase("de-CH") +
   Array.from(last.trim())[0].toLocaleUpperCase("de-CH") +
