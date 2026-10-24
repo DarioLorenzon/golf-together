@@ -216,8 +216,11 @@ $("signup-form").addEventListener("submit",async e => {
   const last = $("last").value.trim();
   if (!first || !last) return;
 
-  const signupRef = ref(db,`signups/${selectedEvent}/${user.uid}`);
-  $("signup-form").querySelector("button[type=submit]").disabled = true;
+  const submitButton = $("signup-form").querySelector(
+  'button[type="submit"], input[type="submit"]'
+);
+
+if (submitButton) submitButton.disabled = true;
 
   try {
     const existing = await get(signupRef);
@@ -236,7 +239,7 @@ $("signup-form").addEventListener("submit",async e => {
     say("signup-message","Speichern fehlgeschlagen. Bitte Firebase-Regeln prüfen.");
     console.error(error);
   } finally {
-    $("signup-form").querySelector("button[type=submit]").disabled = false;
+    if (submitButton) submitButton.disabled = false;
   }
 });
 
