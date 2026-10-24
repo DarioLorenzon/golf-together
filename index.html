@@ -146,8 +146,11 @@ const say = (id, message) => {
 const clean = value => String(value ?? "");
 
 const initials = (first, last) =>
-  Array.from(first.trim()).slice(0, 2).join("").toLocaleUpperCase("de-CH") +
-  Array.from(last.trim()).slice(0, 2).join("").toLocaleUpperCase("de-CH");
+const initials = (first, last) =>
+  Array.from(first.trim())[0].toLocaleUpperCase("de-CH") +
+  Array.from(first.trim()).slice(1, 2).join("").toLocaleLowerCase("de-CH") +
+  Array.from(last.trim())[0].toLocaleUpperCase("de-CH") +
+  Array.from(last.trim()).slice(1, 2).join("").toLocaleLowerCase("de-CH");
 
 function dateLabel(date) {
   if (!date) return "";
