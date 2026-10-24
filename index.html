@@ -260,23 +260,22 @@ function render() {
 
     for (const [uid, person] of entries) {
       const chip = node("span", undefined, "person");
-      chip.append(document.createTextNode(person.initials || "??"));
-
-      if (user && uid === user.uid) {
-        const cancel = node("button", "Abmelden", "danger");
-        cancel.type = "button";
-
-        cancel.addEventListener("click", async () => {
-          if (!confirm("Möchtest du deine Anmeldung entfernen?")) return;
-
-          try {
-            await remove(ref(db, `signups/${id}/${user.uid}`));
-            say("status", "Deine Anmeldung wurde entfernt.");
-          } catch (error) {
-            console.error("Abmelden fehlgeschlagen:", error);
-            say("status", `Abmelden fehlgeschlagen: ${error.code || error.message}`);
-          }
+      const label = node("span", person.initials || "??");
+      
+      if (person.fullName) {
+        label.style.cursor = "pointer";
+        label.title = "Klicken, um den vollständigen Namen anzuzeigen";
+      
+        label.addEventListener("click", () => {
+          label.textContent = person.fullName;
+      
+          setTimeout(() => {
+            label.textContent = person.initials || "??";
+          }, 2000);
         });
+      }
+
+chip.append(label);
 
         chip.append(cancel);
       }
@@ -350,9 +349,9 @@ $("signup-form").addEventListener("submit", async e => {
       return;
     }
 
-    // Es werden nur Initialen gespeichert, nicht die vollständigen Namen.
-    await set(signupRef, {
+   await set(signupRef, {
       initials: initials(first, last),
+      fullName: `${first} ${last}`,
       createdAt: Date.now()
     });
 
