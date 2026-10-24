@@ -20,11 +20,11 @@ header h1{margin:0;font-size:25px}
 header p{margin:5px 0 0;color:#d9ed9b;font-size:13px}
 button{cursor:pointer;border:0;border-radius:8px;background:#173f35;color:white;padding:12px 16px;font-weight:bold}
 button:disabled{opacity:.6;cursor:not-allowed}
-header button{background:#d9ed9b;color:#173f35;padding:5px 9px;font-size:11px;border-radius:6px}
+header button{background:#d9ed9b;color:#173f35;padding:3px 5px;font-size:13px;line-height:1;border-radius:5px;min-width:0}
 main{max-width:760px;margin:35px auto;padding:0 16px}
 h2{margin-top:0}
 .card,.panel{background:white;padding:22px;border-radius:14px;box-shadow:0 4px 16px #00000010;margin-bottom:18px}
-.meta{font-size:10px;color:#6a806d}
+.meta{font-size:9px;color:#6a806d}
 .people{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 15px}
 .participant-label{font-size:13px;color:#6a806d;margin:10px 0 4px}
 .person{background:#e7efdc;padding:9px 12px;border-radius:8px;font-weight:bold}
@@ -54,7 +54,7 @@ dialog::backdrop{background:#0006}
 <!-- ===== Kopfzeile ===== -->
 <header>
   <div><h1>golf together</h1><p>gemeinsam mehr spass</p></div>
-  <button id="admin-open" type="button">Admin</button>
+  <button id="admin-open" type="button" aria-label="Administration öffnen" title="Administration öffnen">⚙</button>
 </header>
 
 <!-- ===== Hauptbereich: Events und Administration ===== -->
@@ -301,7 +301,7 @@ function render() {
         selectedEvent = id;
         $("signup-title").textContent = event.title;
         $("signup-date").textContent =
-          dateLabel(event.date) + " · " + event.location;
+          dateLabel(event.date) + " " + event.location;
         $("signup-form").reset();
         say("signup-message", "");
         $("signup-dialog").showModal();
