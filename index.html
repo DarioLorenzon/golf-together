@@ -229,9 +229,7 @@ function render() {
     }
 
     const entries = Object.entries(signups[id] || {});
-    const count = node("strong", `Angemeldet: ${entries.length}`);
-    count.style.fontSize = "12px";
-    card.append(count);
+    card.append(node("strong", `Angemeldet: ${entries.length}`));
     card.append(node("p", "Teilnehmer (Klick auf Kürzel zeigt den ganzen Namen)", "participant-label"));
 
     const people = node("div", undefined, "people");
@@ -293,7 +291,7 @@ function render() {
 
     const button = node(
       "button",
-      own ? "Du bist angemeldet ✓" : "Für dieses Event anmelden",
+      own ? "Du bist angemeldet ✓" : "Interesse/Anmeldung",
       "wide"
     );
 
@@ -303,7 +301,7 @@ function render() {
     if (!own) {
       button.addEventListener("click", () => {
         selectedEvent = id;
-        $("signup-title").textContent = "Anmeldung";
+        $("signup-title").textContent = "Interesse/Anmeldung";
         $("signup-date").textContent =
           dateLabel(event.date) + " " + event.location;
         $("signup-form").reset();
