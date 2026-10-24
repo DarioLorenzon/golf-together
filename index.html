@@ -2,200 +2,350 @@
 <!DOCTYPE html>
 <html lang="de-CH">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>golf together</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f6ef;
-      color: #203d32;
-    }
-    header {
-      background: #173f35;
-      color: white;
-      padding: 22px;
-      text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-    header p {
-      margin-bottom: 0;
-      color: #d9ed9b;
-    }
-    main {
-      max-width: 650px;
-      margin: 35px auto;
-      padding: 0 16px;
-    }
-    .event {
-      background: white;
-      padding: 24px;
-      border-radius: 14px;
-      box-shadow: 0 4px 16px #00000010;
-    }
-    .event h2 {
-      margin-top: 0;
-    }
-    .date {
-      color: #6a806d;
-      font-size: 14px;
-    }
-    .people {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 18px 0;
-    }
-    .person {
-      background: #e7efdc;
-      padding: 10px 13px;
-      border-radius: 8px;
-      font-weight: bold;
-    }
-    label {
-      display: block;
-      margin: 12px 0 5px;
-      font-size: 14px;
-    }
-    input {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccd5ca;
-      border-radius: 7px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      margin-top: 16px;
-      padding: 14px;
-      border: 0;
-      border-radius: 8px;
-      background: #173f35;
-      color: white;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #285b49;
-    }
-    #message {
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    footer {
-      text-align: center;
-      padding: 25px;
-      color: #6a806d;
-      font-size: 13px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>golf together</title>
+<style>
+body{margin:0;background:#f5f6ef;color:#203d32;font-family:Arial,sans-serif}
+header{background:#173f35;color:white;padding:22px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:25px}
+header p{margin:5px 0 0;color:#d9ed9b;font-size:13px}
+button{cursor:pointer;border:0;border-radius:8px;background:#173f35;color:white;padding:12px 16px;font-weight:bold}
+header button{background:#d9ed9b;color:#173f35}
+main{max-width:760px;margin:35px auto;padding:0 16px}
+h2{margin-top:0}
+.card,.panel{background:white;padding:22px;border-radius:14px;box-shadow:0 4px 16px #00000010;margin-bottom:18px}
+.meta{font-size:12px;color:#6a806d}
+.people{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}
+.person{background:#e7efdc;padding:9px 12px;border-radius:8px;font-weight:bold}
+.person button{padding:5px 7px;margin-left:6px;font-size:11px}
+label{display:block;font-size:13px;margin:12px 0 5px}
+input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ccd5ca;border-radius:7px;font-size:16px}
+form button{margin-top:14px}
+.wide{width:100%}
+.secondary{background:#e7efdc;color:#173f35}
+.danger{background:#8d3328}
+[hidden]{display:none!important}
+.note{font-size:13px;line-height:1.5;color:#68756d}
+footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
+</style>
 </head>
 <body>
-  <header>
-    <h1>golf together</h1>
-    <p>Gemeinsam auf dem Green</p>
-  </header>
+<header>
+  <div><h1>golf together</h1><p>Gemeinsam auf dem Green</p></div>
+  <button id="admin-open">Admin</button>
+</header>
 
-  <main>
-    <article class="event">
-      <p class="date">EVENT · 24. APRIL 2027</p>
-      <h2>Golfclub Waldkirch</h2>
-      <p>Ein gemeinsamer Golftag in schöner Ostschweizer Landschaft.</p>
+<main>
+  <p class="meta">UNSERE GOLFEVENTS</p>
+  <h2>Kommst du mit?</h2>
+  <p class="note">Melde dich für unsere gemeinsamen Golfrunden an.</p>
+  <div id="events">Events werden geladen …</div>
+  <p id="status" class="note" role="status"></p>
 
-      <hr>
-      <p><strong>Wer ist dabei?</strong></p>
-      <div id="people" class="people">
-        <span>Noch keine Anmeldungen</span>
-      </div>
-
-      <form id="signup">
-        <label for="firstName">Vorname</label>
-        <input id="firstName" maxlength="50" required>
-
-        <label for="lastName">Nachname</label>
-        <input id="lastName" maxlength="50" required>
-
-        <button type="submit">Für Waldkirch anmelden</button>
+  <section id="admin" class="panel" hidden>
+    <button id="admin-close" class="secondary">Schliessen</button>
+    <h2>Eventverwaltung</h2>
+    <form id="login">
+      <p class="note">Admin-Anmeldung</p>
+      <label for="email">E-Mail-Adresse</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">Passwort</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="wide">Anmelden</button>
+      <p id="login-message" class="note"></p>
+    </form>
+    <div id="admin-tools" hidden>
+      <p>Du bist als Administrator angemeldet.</p>
+      <button id="logout" class="secondary">Abmelden</button>
+      <h3>Neues Event erstellen</h3>
+      <form id="event-form">
+        <label for="event-title">Eventname</label>
+        <input id="event-title" required placeholder="Golfclub Waldkirch">
+        <label for="event-date">Datum</label>
+        <input id="event-date" type="date" required>
+        <label for="event-location">Ort</label>
+        <input id="event-location" required placeholder="Waldkirch">
+        <label for="event-description">Beschreibung</label>
+        <input id="event-description" placeholder="Optional">
+        <button class="wide">Event speichern</button>
+        <p id="event-message" class="note"></p>
       </form>
-      <p id="message" role="status"></p>
-    </article>
-  </main>
+      <h3>Events verwalten</h3>
+      <div id="admin-events"></div>
+    </div>
+  </section>
+</main>
+<footer>golf together · Schön, dass du dabei bist.</footer>
 
-  <footer>golf together · Schön, dass du dabei bist.</footer>
+<dialog id="signup-dialog">
+  <form id="signup-form">
+    <h2 id="signup-title">Anmeldung</h2>
+    <p id="signup-date" class="note"></p>
+    <label for="first">Vorname</label>
+    <input id="first" maxlength="50" autocomplete="given-name" required>
+    <label for="last">Nachname</label>
+    <input id="last" maxlength="50" autocomplete="family-name" required>
+    <button class="wide">Anmeldung bestätigen</button>
+    <button type="button" id="signup-close" class="secondary wide">Abbrechen</button>
+    <p id="signup-message" class="note"></p>
+  </form>
+</dialog>
 
-  <script>
-    const STORAGE_KEY = "golf-together-waldkirch";
-    const form = document.getElementById("signup");
-    const people = document.getElementById("people");
-    const message = document.getElementById("message");
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import {
+  getAuth, signInAnonymously, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import {
+  getDatabase, ref, onValue, push, set, remove, get
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-    let attendees = [];
+const firebaseConfig = {
+  apiKey: "AIzaSyCrqW1W42rT1DumbdLUJ8FvneFjwNdKMs",
+  authDomain: "golf-together-4a1b7.firebaseapp.com",
+  databaseURL: "https://golf-together-4a1b7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "golf-together-4a1b7",
+  storageBucket: "golf-together-4a1b7.firebasestorage.app",
+  messagingSenderId: "444425305425",
+  appId: "1:444425305425:web:111aec354d495836bee770"
+};
 
-    try {
-      attendees = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      if (!Array.isArray(attendees)) attendees = [];
-    } catch {
-      attendees = [];
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const $ = id => document.getElementById(id);
+
+let user = null;
+let isAdmin = false;
+let events = {};
+let signups = {};
+let selectedEvent = null;
+let authReady = false;
+
+const say = (id, message) => $(id).textContent = message;
+const clean = value => String(value ?? "");
+const initials = (first,last) =>
+  Array.from(first.trim()).slice(0,2).join("") .toLocaleUpperCase("de-CH") +
+  Array.from(last.trim()).slice(0,2).join("").toLocaleUpperCase("de-CH");
+
+function dateLabel(date) {
+  if (!date) return "";
+  return new Intl.DateTimeFormat("de-CH", {
+    day:"numeric",month:"long",year:"numeric"
+  }).format(new Date(date+"T12:00:00"));
+}
+
+function node(tag, text, className) {
+  const el = document.createElement(tag);
+  if (text !== undefined) el.textContent = text;
+  if (className) el.className = className;
+  return el;
+}
+
+function render() {
+  const root = $("events");
+  root.replaceChildren();
+  const rows = Object.entries(events).sort((a,b) =>
+    clean(a[1].date).localeCompare(clean(b[1].date))
+  );
+
+  if (!rows.length) {
+    root.append(node("p","Noch keine Events erfasst."));
+    return;
+  }
+
+  for (const [id,event] of rows) {
+    const card = node("article",undefined,"card");
+    card.append(node("p",clean(event.date)+" · "+clean(event.location),"meta"));
+    card.append(node("h2",event.title));
+    if (event.description) card.append(node("p",event.description));
+
+    const entries = Object.entries(signups[id] || {});
+    card.append(node("strong",`Angemeldet: ${entries.length}`));
+    const people = node("div",undefined,"people");
+
+    if (!entries.length) people.append(node("span","Noch keine Anmeldungen"));
+
+    for (const [uid,person] of entries) {
+      const chip = node("span",undefined,"person");
+      chip.append(document.createTextNode(person.initials || "??"));
+
+      if (user && uid === user.uid) {
+        const cancel = node("button","Abmelden","danger");
+        cancel.type = "button";
+        cancel.addEventListener("click",async () => {
+          if (!confirm("Möchtest du deine Anmeldung entfernen?")) return;
+          try {
+            await remove(ref(db,`signups/${id}/${user.uid}`));
+            say("status","Deine Anmeldung wurde entfernt.");
+          } catch(e) {
+            say("status","Abmelden nicht möglich. Bitte Verbindung prüfen.");
+          }
+        });
+        chip.append(cancel);
+      }
+      people.append(chip);
     }
+    card.append(people);
 
-    function render() {
-      people.replaceChildren();
-
-      if (attendees.length === 0) {
-        people.textContent = "Noch keine Anmeldungen";
-        return;
-      }
-
-      attendees.forEach((person) => {
-        const chip = document.createElement("span");
-        chip.className = "person";
-        chip.textContent = person.initials;
-        people.appendChild(chip);
-      });
-    }
-
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      const first = document.getElementById("firstName").value.trim();
-      const last = document.getElementById("lastName").value.trim();
-
-      if (!first || !last) return;
-
-      const duplicate = attendees.some(
-        (p) => p.first.toLocaleLowerCase("de-CH") === first.toLocaleLowerCase("de-CH")
-          && p.last.toLocaleLowerCase("de-CH") === last.toLocaleLowerCase("de-CH")
-      );
-
-      if (duplicate) {
-        message.textContent = "Du bist bereits angemeldet.";
-        return;
-      }
-
-      const initials = Array.from(first)[0].toLocaleUpperCase("de-CH")
-        + Array.from(last)[0].toLocaleUpperCase("de-CH");
-
-      attendees.push({ first, last, initials });
-
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(attendees));
-      } catch {
-        message.textContent = "Speichern im Browser ist nicht möglich.";
-        return;
-      }
-
-      render();
-      form.reset();
-      message.textContent = "Deine Anmeldung wurde gespeichert.";
+    const own = user && signups[id]?.[user.uid];
+    const button = node("button",own ? "Du bist angemeldet ✓" : "Für dieses Event anmelden","wide");
+    button.disabled = Boolean(own) || !authReady;
+    if (!own) button.addEventListener("click",() => {
+      selectedEvent = id;
+      $("signup-title").textContent = event.title;
+      $("signup-date").textContent = dateLabel(event.date)+" · "+event.location;
+      $("signup-form").reset();
+      say("signup-message","");
+      $("signup-dialog").showModal();
     });
+    card.append(button);
+    root.append(card);
+  }
+}
 
-    render();
-  </script>
+$("signup-close").addEventListener("click",() => $("signup-dialog").close());
+
+$("signup-form").addEventListener("submit",async e => {
+  e.preventDefault();
+  if (!user || !selectedEvent) return;
+
+  const first = $("first").value.trim();
+  const last = $("last").value.trim();
+  if (!first || !last) return;
+
+  const signupRef = ref(db,`signups/${selectedEvent}/${user.uid}`);
+  $("signup-form").querySelector("button[type=submit]").disabled = true;
+
+  try {
+    const existing = await get(signupRef);
+    if (existing.exists()) {
+      say("signup-message","Du bist bereits angemeldet.");
+      return;
+    }
+    // Es werden nur Kürzel gespeichert, nicht die vollständigen Namen.
+    await set(signupRef,{
+      initials:initials(first,last),
+      createdAt:Date.now()
+    });
+    $("signup-dialog").close();
+    say("status","Deine Anmeldung wurde gespeichert.");
+  } catch(error) {
+    say("signup-message","Speichern fehlgeschlagen. Bitte Firebase-Regeln prüfen.");
+    console.error(error);
+  } finally {
+    $("signup-form").querySelector("button[type=submit]").disabled = false;
+  }
+});
+
+$("admin-open").addEventListener("click",() => {
+  $("admin").hidden = false;
+  $("admin").scrollIntoView({behavior:"smooth"});
+});
+$("admin-close").addEventListener("click",() => $("admin").hidden = true);
+
+$("login").addEventListener("submit",async e => {
+  e.preventDefault();
+  try {
+    await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
+    say("login-message","");
+  } catch(error) {
+    say("login-message","Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.");
+  }
+});
+
+$("logout").addEventListener("click",async () => {
+  await signOut(auth);
+  await signInAnonymously(auth);
+});
+
+function renderAdminEvents() {
+  const root = $("admin-events");
+  root.replaceChildren();
+
+  for (const [id,event] of Object.entries(events)) {
+    const row = node("div",undefined,"card");
+    row.append(node("strong",event.title));
+    row.append(node("p",dateLabel(event.date)+" · "+event.location));
+    const del = node("button","Event löschen","danger");
+    del.addEventListener("click",async () => {
+      if (!confirm("Event und alle Anmeldungen löschen?")) return;
+      try {
+        await remove(ref(db,`events/${id}`));
+        await remove(ref(db,`signups/${id}`));
+      } catch(e) {
+        say("status","Löschen fehlgeschlagen.");
+      }
+    });
+    row.append(del);
+    root.append(row);
+  }
+}
+
+$("event-form").addEventListener("submit",async e => {
+  e.preventDefault();
+  if (!isAdmin) return;
+
+  const event = {
+    title:$("event-title").value.trim(),
+    date:$("event-date").value,
+    location:$("event-location").value.trim(),
+    description:$("event-description").value.trim()
+  };
+  try {
+    await set(push(ref(db,"events")),event);
+    e.target.reset();
+    say("event-message","Event wurde gespeichert.");
+  } catch(error) {
+    say("event-message","Speichern fehlgeschlagen. Adminrechte prüfen.");
+  }
+});
+
+onAuthStateChanged(auth,async current => {
+  user = current;
+  if (!user) {
+    authReady = false;
+    return;
+  }
+
+  try {
+    const adminSnap = await get(ref(db,`admins/${user.uid}`));
+    isAdmin = adminSnap.val() === true;
+    $("login").hidden = isAdmin;
+    $("admin-tools").hidden = !isAdmin;
+    if (isAdmin) renderAdminEvents();
+  } catch(error) {
+    isAdmin = false;
+    $("login").hidden = false;
+    $("admin-tools").hidden = true;
+  }
+
+  authReady = true;
+  render();
+});
+
+onValue(ref(db,"events"),snapshot => {
+  events = snapshot.val() || {};
+  render();
+  if (isAdmin) renderAdminEvents();
+},error => {
+  say("status","Events konnten nicht geladen werden. Firebase-Regeln prüfen.");
+  console.error(error);
+});
+
+onValue(ref(db,"signups"),snapshot => {
+  signups = snapshot.val() || {};
+  render();
+},error => console.error(error));
+
+if (!auth.currentUser) {
+  signInAnonymously(auth).catch(error => {
+    say("status","Firebase-Anmeldung fehlgeschlagen. Authentication prüfen.");
+    console.error(error);
+  });
+}
+</script>
 </body>
 </html>
