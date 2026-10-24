@@ -24,6 +24,7 @@ header button{background:#d9ed9b;color:#173f35;padding:3px 5px;font-size:13px;li
 main{max-width:760px;margin:35px auto;padding:0 16px}
 h2{margin-top:0}
 .card,.panel{background:white;padding:22px;border-radius:14px;box-shadow:0 4px 16px #00000010;margin-bottom:18px}
+.event-heading{font-size:15px;font-weight:600;margin:0 0 12px}
 .meta{font-size:9px;color:#6a806d}
 .people{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 15px}
 .participant-label{font-size:13px;color:#6a806d;margin:10px 0 4px}
@@ -42,7 +43,7 @@ footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
 dialog{width:calc(100% - 32px);max-width:360px;border:0;border-radius:12px;padding:16px;box-shadow:0 8px 35px #0003;box-sizing:border-box}
 dialog::backdrop{background:#0006}
 #signup-dialog h2{font-size:19px;margin:0 0 5px}
-#signup-dialog #signup-date{margin:0 0 8px;font-size:12px}
+#signup-dialog #signup-date{margin:0 0 8px;font-size:10px}
 #signup-dialog label{margin:7px 0 3px;font-size:12px}
 #signup-dialog input{padding:8px 10px;font-size:15px}
 #signup-dialog button{padding:9px 12px;font-size:13px}
@@ -218,8 +219,9 @@ function render() {
     const card = node("article", undefined, "card");
 
     card.append(node(
-      "h2",
-      dateLabel(event.date) + " " + clean(event.location)
+      "p",
+      dateLabel(event.date) + " " + clean(event.location),
+      "event-heading"
     ));
 
     if (event.description) {
@@ -299,7 +301,7 @@ function render() {
     if (!own) {
       button.addEventListener("click", () => {
         selectedEvent = id;
-        $("signup-title").textContent = event.title;
+        $("signup-title").textContent = "Anmeldung";
         $("signup-date").textContent =
           dateLabel(event.date) + " " + event.location;
         $("signup-form").reset();
