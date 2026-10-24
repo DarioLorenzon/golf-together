@@ -27,10 +27,14 @@ h2{margin-top:0}
   /* ===== Schriftgrösse für Datum & Event ===== */
 .event-heading{font-size:18px;font-weight:bold;margin:0 0 12px}
 .meta{font-size:9px;color:#6a806d}
-.people{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 15px}
+/* Teilnehmer-Kürzel in einem kompakten, responsiven Raster */
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:5px;margin:8px 0 15px}
 .participant-label{font-size:13px;color:#6a806d;margin:10px 0 4px}
-.person{background:#e7efdc;padding:9px 12px;border-radius:8px;font-weight:bold}
-.person button{padding:5px 7px;margin-left:6px;font-size:11px}
+.person{display:flex;justify-content:center;align-items:center;min-width:0;padding:6px 4px;border:0;border-radius:7px;font-weight:bold;font-size:12px;cursor:pointer;background:#e7efdc;color:#203d32}
+.person:focus-visible{outline:2px solid #173f35;outline-offset:2px}
+.person-details{grid-column:1/-1;background:#f5f6ef;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:normal;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.person-details .person-name{overflow-wrap:anywhere}
+.person-details button{padding:5px 8px;font-size:11px;flex-shrink:0}
 label{display:block;font-size:13px;margin:12px 0 5px}
 input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ccd5ca;border-radius:7px;font-size:16px}
 form button{margin-top:14px}
@@ -244,34 +248,24 @@ function render() {
     }
 
     for (const [uid, person] of entries) {
-      const chip = node("span", undefined, "person");
-      const label = node("span", person.initials || "??");
+      // Das Kürzel bleibt kompakt; Name und Abmeldefunktion erscheinen erst nach Klick.
+      const chip = node("button", person.initials || "??", "person");
+      chip.type = "button";
+      chip.title = "Klicken, um den vollständigen Namen und die Abmeldefunktion anzuzeigen";
+      chip.setAttribute("aria-expanded", "false");
 
-      // Kürzel anklicken, um den vollständigen Namen kurz anzuzeigen
-      if (person.fullName) {
-        label.style.cursor = "pointer";
-        label.title = "Klicken, um den vollständigen Namen anzuzeigen";
+      const details = node("div", undefined, "person-details");
+      details.hidden = true;
+      const name = person.fullName || person.initials || "Unbekannte Person";
+      details.append(node("span", name, "person-name"));
 
-        label.addEventListener("click", () => {
-          label.textContent = person.fullName;
-
-          setTimeout(() => {
-            label.textContent = person.initials || "??";
-          }, 2000);
-        });
-      }
-
-      chip.append(label);
-
-      // Abmelden ist auf jedem Gerät möglich.
-      // Die Bestätigung nennt die Person, damit keine Anmeldung versehentlich gelöscht wird.
       if (user) {
         const cancel = node("button", "Abmelden", "danger");
         cancel.type = "button";
-        cancel.setAttribute("aria-label", `Anmeldung von ${person.fullName || person.initials || "dieser Person"} entfernen`);
+        cancel.setAttribute("aria-label", `Anmeldung von ${name} entfernen`);
 
-        cancel.addEventListener("click", async () => {
-          const name = person.fullName || person.initials || "diese Person";
+        cancel.addEventListener("click", async event => {
+          event.stopPropagation();
           if (!confirm(`Möchtest du die Anmeldung von ${name} wirklich entfernen?`)) return;
 
           try {
@@ -283,10 +277,16 @@ function render() {
           }
         });
 
-        chip.append(cancel);
+        details.append(cancel);
       }
 
-      people.append(chip);
+      chip.addEventListener("click", () => {
+        const isOpen = !details.hidden;
+        details.hidden = isOpen;
+        chip.setAttribute("aria-expanded", String(!isOpen));
+      });
+
+      people.append(chip, details);
     }
 
     card.append(people);
