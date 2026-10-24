@@ -261,21 +261,39 @@ function render() {
     for (const [uid, person] of entries) {
       const chip = node("span", undefined, "person");
       const label = node("span", person.initials || "??");
-      
+
+      // Kürzel anklicken, um den vollständigen Namen kurz anzuzeigen
       if (person.fullName) {
         label.style.cursor = "pointer";
         label.title = "Klicken, um den vollständigen Namen anzuzeigen";
-      
+
         label.addEventListener("click", () => {
           label.textContent = person.fullName;
-      
+
           setTimeout(() => {
             label.textContent = person.initials || "??";
           }, 2000);
         });
-      
+      }
 
-chip.append(label);
+      chip.append(label);
+
+      // Abmeldebutton nur bei der eigenen Anmeldung anzeigen
+      if (user && uid === user.uid) {
+        const cancel = node("button", "Abmelden", "danger");
+        cancel.type = "button";
+
+        cancel.addEventListener("click", async () => {
+          if (!confirm("Möchtest du deine Anmeldung entfernen?")) return;
+
+          try {
+            await remove(ref(db, `signups/${id}/${user.uid}`));
+            say("status", "Deine Anmeldung wurde entfernt.");
+          } catch (error) {
+            console.error("Abmelden fehlgeschlagen:", error);
+            say("status", `Abmelden fehlgeschlagen: ${error.code || error.message}`);
+          }
+        });
 
         chip.append(cancel);
       }
