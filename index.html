@@ -230,7 +230,7 @@ function render() {
 
     const entries = Object.entries(signups[id] || {});
     const count = node("strong", `Angemeldet: ${entries.length}`);
-    count.style.fontSize = "12px";
+    count.style.fontSize = "14px";
     card.append(count);
     card.append(node("p", "Teilnehmer (Klick auf Kürzel zeigt den ganzen Namen)", "participant-label"));
 
