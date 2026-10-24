@@ -28,6 +28,9 @@ form button{margin-top:14px}
 .danger{background:#8d3328}
 [hidden]{display:none!important}
 .note{font-size:13px;line-height:1.5;color:#68756d}
+.overview-row{padding:12px 0;border-bottom:1px solid #e7ece4}
+.overview-row:last-child{border-bottom:0}
+.overview-row p{margin:6px 0 0;line-height:1.5}
 footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
 dialog{width:calc(100% - 48px);max-width:420px;border:0;border-radius:14px;padding:24px;box-shadow:0 8px 35px #0003;box-sizing:border-box}
 dialog::backdrop{background:#0006}
@@ -43,12 +46,20 @@ dialog::backdrop{background:#0006}
   <p class="meta">UNSERE GOLFEVENTS</p>
   <h2>Kommst du mit?</h2>
   <p class="note">Melde dich für unsere gemeinsamen Golfrunden an.</p>
+
   <div id="events">Events werden geladen …</div>
+
+  <section id="participant-overview" class="panel">
+    <h2>Teilnehmerübersicht</h2>
+    <div id="overview-list">Teilnehmer werden geladen …</div>
+  </section>
+
   <p id="status" class="note" role="status"></p>
 
   <section id="admin" class="panel" hidden>
     <button id="admin-close" type="button" class="secondary">Schliessen</button>
     <h2>Eventverwaltung</h2>
+
     <form id="login">
       <p class="note">Admin-Anmeldung</p>
       <label for="email">E-Mail-Adresse</label>
@@ -62,6 +73,7 @@ dialog::backdrop{background:#0006}
     <div id="admin-tools" hidden>
       <p>Du bist als Administrator angemeldet.</p>
       <button id="logout" type="button" class="secondary">Abmelden</button>
+
       <h3>Neues Event erstellen</h3>
       <form id="event-form">
         <label for="event-title">Eventname</label>
@@ -75,6 +87,7 @@ dialog::backdrop{background:#0006}
         <button class="wide" type="submit">Event speichern</button>
         <p id="event-message" class="note"></p>
       </form>
+
       <h3>Events verwalten</h3>
       <div id="admin-events"></div>
     </div>
@@ -167,7 +180,48 @@ function node(tag, text, className) {
   return el;
 }
 
+// NEU: Teilnehmerübersicht für alle Events
+function renderOverview() {
+  const root = $("overview-list");
+  root.replaceChildren();
+
+  const rows = Object.entries(events).sort((a, b) =>
+    clean(a[1].date).localeCompare(clean(b[1].date))
+  );
+
+  if (!rows.length) {
+    root.append(node("p", "Noch keine Events erfasst."));
+    return;
+  }
+
+  for (const [id, event] of rows) {
+    const row = node("div", undefined, "overview-row");
+
+    const heading = node(
+      "strong",
+      `${clean(event.date)} · ${clean(event.location || event.title)}`
+    );
+
+    const participants = Object.values(signups[id] || {})
+      .map(person => person.initials)
+      .filter(Boolean);
+
+    const participantList = node(
+      "p",
+      participants.length
+        ? participants.join(", ")
+        : "Noch keine Anmeldungen"
+    );
+
+    row.append(heading, participantList);
+    root.append(row);
+  }
+}
+
 function render() {
+  // Übersicht bei jeder Änderung aktualisieren
+  renderOverview();
+
   const root = $("events");
   root.replaceChildren();
 
@@ -280,7 +334,6 @@ $("signup-form").addEventListener("submit", async e => {
     return;
   }
 
-  // Datenbankpfad für diesen Benutzer und dieses Event
   const signupRef = ref(db, `signups/${selectedEvent}/${user.uid}`);
 
   const submitButton = $("signup-form").querySelector(
