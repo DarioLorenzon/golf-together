@@ -17,7 +17,8 @@ main{max-width:760px;margin:35px auto;padding:0 16px}
 h2{margin-top:0}
 .card,.panel{background:white;padding:22px;border-radius:14px;box-shadow:0 4px 16px #00000010;margin-bottom:18px}
 .meta{font-size:12px;color:#6a806d}
-.people{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}
+.people{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 15px}
+.participant-label{font-size:13px;color:#6a806d;margin:10px 0 4px}
 .person{background:#e7efdc;padding:9px 12px;border-radius:8px;font-weight:bold}
 .person button{padding:5px 7px;margin-left:6px;font-size:11px}
 label{display:block;font-size:13px;margin:12px 0 5px}
@@ -28,9 +29,6 @@ form button{margin-top:14px}
 .danger{background:#8d3328}
 [hidden]{display:none!important}
 .note{font-size:13px;line-height:1.5;color:#68756d}
-.overview-row{padding:12px 0;border-bottom:1px solid #e7ece4}
-.overview-row:last-child{border-bottom:0}
-.overview-row p{margin:6px 0 0;line-height:1.5}
 footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
 dialog{width:calc(100% - 48px);max-width:420px;border:0;border-radius:14px;padding:24px;box-shadow:0 8px 35px #0003;box-sizing:border-box}
 dialog::backdrop{background:#0006}
@@ -48,13 +46,7 @@ dialog::backdrop{background:#0006}
   <p class="note">Melde dich für unsere gemeinsamen Golfrunden an.</p>
 
   <div id="events">Events werden geladen …</div>
-
-  <section id="participant-overview" class="panel">
-    <h2>Teilnehmerübersicht</h2>
-    <div id="overview-list">Teilnehmer werden geladen …</div>
-  </section>
-
-  <p id="status" class="note" role="status"></p>
+<p id="status" class="note" role="status"></p>
 
   <section id="admin" class="panel" hidden>
     <button id="admin-close" type="button" class="secondary">Schliessen</button>
@@ -180,47 +172,8 @@ function node(tag, text, className) {
   return el;
 }
 
-// NEU: Teilnehmerübersicht für alle Events
-function renderOverview() {
-  const root = $("overview-list");
-  root.replaceChildren();
-
-  const rows = Object.entries(events).sort((a, b) =>
-    clean(a[1].date).localeCompare(clean(b[1].date))
-  );
-
-  if (!rows.length) {
-    root.append(node("p", "Noch keine Events erfasst."));
-    return;
-  }
-
-  for (const [id, event] of rows) {
-    const row = node("div", undefined, "overview-row");
-
-    const heading = node(
-      "strong",
-      `${clean(event.date)} · ${clean(event.location || event.title)}`
-    );
-
-    const participants = Object.values(signups[id] || {})
-      .map(person => person.initials)
-      .filter(Boolean);
-
-    const participantList = node(
-      "p",
-      participants.length
-        ? participants.join(", ")
-        : "Noch keine Anmeldungen"
-    );
-
-    row.append(heading, participantList);
-    root.append(row);
-  }
-}
-
 function render() {
   // Übersicht bei jeder Änderung aktualisieren
-  renderOverview();
 
   const root = $("events");
   root.replaceChildren();
@@ -251,8 +204,10 @@ function render() {
 
     const entries = Object.entries(signups[id] || {});
     card.append(node("strong", `Angemeldet: ${entries.length}`));
+    card.append(node("p", "Teilnehmer", "participant-label"));
 
     const people = node("div", undefined, "people");
+    people.setAttribute("aria-label", "Teilnehmer; Kürzel anklicken, um den Namen anzuzeigen");
 
     if (!entries.length) {
       people.append(node("span", "Noch keine Anmeldungen"));
