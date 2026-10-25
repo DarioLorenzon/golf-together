@@ -47,6 +47,20 @@ form button{margin-top:14px}
 [hidden]{display:none!important}
 .note{font-size:13px;line-height:1.5;color:#68756d}
 footer{text-align:center;padding:25px;color:#6a806d;font-size:13px}
+/* ===== Teilnehmer-Popup ===== */
+.participants-dialog{width:calc(100% - 32px);max-width:480px;max-height:80vh;overflow:auto;border:0;border-radius:14px;padding:18px;box-shadow:0 8px 35px #0003;box-sizing:border-box}
+.participants-dialog::backdrop{background:#0006}
+.participants-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.participants-header h2{font-size:19px;margin:0 0 4px}
+.participants-header p{font-size:11px;margin:0}
+.participants-close{padding:6px 9px;font-size:11px;white-space:nowrap}
+.participants-list{display:flex;flex-direction:column;gap:5px}
+.participant-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:9px;padding:8px 6px;border-bottom:1px solid #e7eae3;cursor:pointer}
+.participant-row:focus-visible{outline:2px solid #173f35;outline-offset:2px}
+.participant-initials{background:#e7efdc;border-radius:6px;padding:6px 3px;text-align:center;font-size:12px;font-weight:bold}
+.participant-name{font-size:13px;overflow-wrap:anywhere}
+.participant-status{font-size:11px;color:#6a806d;white-space:nowrap}
+.participant-status button{padding:5px 8px;font-size:11px}
 /* ===== Anmeldedialog ===== */
 dialog{width:calc(100% - 32px);max-width:360px;border:0;border-radius:12px;padding:16px;box-shadow:0 8px 35px #0003;box-sizing:border-box}
 dialog::backdrop{background:#0006}
@@ -238,80 +252,83 @@ function render() {
 
     const entries = Object.entries(signups[id] || {});
 
-    // Teilnehmerliste bleibt zunächst verborgen und wird über "Angemeldet" geöffnet.
-    const count = node("button", `Angemeldet: ${entries.length} ▾`, "signup-toggle");
+    // Button zum Öffnen des separaten Teilnehmer-Popups.
+    const count = node("button", `Angemeldet: ${entries.length}  ▾`, "signup-toggle");
     count.type = "button";
-    count.setAttribute("aria-expanded", "false");
     count.style.fontSize = "12px";
     card.append(count);
 
-    const participantLabel = node(
-      "p",
-      "Teilnehmer (Klick auf Kürzel zeigt den ganzen Namen)",
-      "participant-label"
-    );
-    participantLabel.hidden = true;
-    card.append(participantLabel);
+    // Popup mit Eventangaben und einer Zeile pro angemeldeter Person.
+    const participantDialog = node("dialog", undefined, "participants-dialog");
+    const popupHeader = node("div", undefined, "participants-header");
+    const popupTitle = node("h2", "Teilnehmerliste");
+    const popupMeta = node("p", `${dateLabel(event.date)} · ${clean(event.location)}`, "note");
+    const closePopup = node("button", "Schliessen", "secondary participants-close");
+    closePopup.type = "button";
+    closePopup.addEventListener("click", () => participantDialog.close());
+    popupHeader.append(node("div"));
+    popupHeader.firstChild.append(popupTitle, popupMeta);
+    popupHeader.append(closePopup);
+    participantDialog.append(popupHeader);
 
-    const people = node("div", undefined, "people");
-    people.hidden = true;
-    people.setAttribute("aria-label", "Teilnehmer; Kürzel anklicken, um den Namen anzuzeigen");
-
-    count.addEventListener("click", () => {
-      const isOpen = !people.hidden;
-      people.hidden = isOpen;
-      participantLabel.hidden = isOpen;
-      count.setAttribute("aria-expanded", String(!isOpen));
-      count.textContent = `Angemeldet: ${entries.length} ${isOpen ? "▾" : "▴"}`;
-    });
-
+    const people = node("div", undefined, "participants-list");
     if (!entries.length) {
-      people.append(node("span", "Noch keine Anmeldungen", "no-signups"));
+      people.append(node("p", "Noch keine Anmeldungen", "no-signups"));
     }
 
     for (const [uid, person] of entries) {
-      // Das Kürzel bleibt kompakt; Name und Abmeldefunktion erscheinen erst nach Klick.
-      const chip = node("button", person.initials || "??", "person");
-      chip.type = "button";
-      chip.title = "Klicken, um den vollständigen Namen und die Abmeldefunktion anzuzeigen";
-      chip.setAttribute("aria-expanded", "false");
-
-      const details = node("div", undefined, "person-details");
-      details.hidden = true;
       const name = person.fullName || person.initials || "Unbekannte Person";
-      details.append(node("span", name, "person-name"));
+      const row = node("div", undefined, "participant-row");
+      row.tabIndex = 0;
+      row.setAttribute("role", "button");
+      row.setAttribute("aria-label", `${name}: Abmeldefunktion anzeigen`);
+      row.append(node("span", person.initials || "??", "participant-initials"));
+      row.append(node("span", name, "participant-name"));
+      const actionArea = node("span", "Angemeldet", "participant-status");
+      row.append(actionArea);
 
-      if (user) {
+      const showCancel = () => {
+        if (actionArea.querySelector("button")) return;
+        actionArea.replaceChildren();
+        if (!user) {
+          actionArea.append(node("span", "Angemeldet", "participant-status"));
+          return;
+        }
         const cancel = node("button", "Abmelden", "danger");
         cancel.type = "button";
-        cancel.setAttribute("aria-label", `Anmeldung von ${name} entfernen`);
-
         cancel.addEventListener("click", async event => {
           event.stopPropagation();
           if (!confirm(`Möchtest du die Anmeldung von ${name} wirklich entfernen?`)) return;
-
           try {
             await remove(ref(db, `signups/${id}/${uid}`));
             say("status", `Die Anmeldung von ${name} wurde entfernt.`);
+            participantDialog.close();
           } catch (error) {
             console.error("Abmelden fehlgeschlagen:", error);
             say("status", `Abmelden fehlgeschlagen: ${error.code || error.message}`);
           }
         });
-
-        details.append(cancel);
-      }
-
-      chip.addEventListener("click", () => {
-        const isOpen = !details.hidden;
-        details.hidden = isOpen;
-        chip.setAttribute("aria-expanded", String(!isOpen));
+        actionArea.append(cancel);
+      };
+      row.addEventListener("click", showCancel);
+      row.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          showCancel();
+        }
       });
-
-      people.append(chip, details);
+      people.append(row);
     }
 
-    card.append(people);
+    participantDialog.append(people);
+    card.append(participantDialog);
+    count.addEventListener("click", () => {
+      if (typeof participantDialog.showModal === "function") {
+        participantDialog.showModal();
+      } else {
+        participantDialog.setAttribute("open", "");
+      }
+    });
 
     const own = user && signups[id]?.[user.uid];
 
